@@ -1,0 +1,529 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jai Maa Enterprises - Office</title>
+<link rel="icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: wide office screen. Brand bar, tabs, summary tiles, orders table that turns into cards on a phone. */
+:root{
+  --bg:#F4F3F0; --surface:#FFFFFF; --surface2:#ECEAE5; --fg:#1B2430; --muted:#5E6A78; --line:#DAD7D0;
+  --accent:#1F3A5F; --accent-fg:#FFFFFF; --brand:#E58A14;
+  --good:#1E7A4F; --good-bg:#DCF1E5; --bad:#B3392F; --bad-bg:#F8E1DE; --warn:#8F5A00; --warn-bg:#FAEBC9;
+  --info:#1F5FA8; --info-bg:#DDEAF8; --ind:#5A3FC0; --ind-bg:#E9E3FA; --teal:#0B7A75; --teal-bg:#D6F0EE; --gray:#4F5D69; --gray-bg:#E4E9ED;
+  --font-head:"Space Grotesk","Segoe UI",system-ui,sans-serif; --font-body:"Inter","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161C; --surface:#1B222B; --surface2:#242D38; --fg:#E8ECF1; --muted:#9AA7B5; --line:#2B3541;
+    --accent:#7FA6DA; --accent-fg:#0E1A2B; --brand:#F29A2E;
+    --good:#5CCB92; --good-bg:#16352A; --bad:#F08A80; --bad-bg:#40201D; --warn:#E8B04D; --warn-bg:#3A2D10;
+    --info:#7DB4F0; --info-bg:#172B44; --ind:#B3A2F5; --ind-bg:#2A2347; --teal:#5FD1CB; --teal-bg:#123634; --gray:#A9B6C1; --gray-bg:#26323C;
+    color-scheme:dark;
+  }
+}
+*{box-sizing:border-box}
+html{color-scheme:light dark}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45;
+  padding-block:0 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#app{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--font-head);margin:0;text-wrap:balance}
+h1{font-size:1.35rem;letter-spacing:-.01em} h2{font-size:1.05rem}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sub{color:var(--muted);font-size:.85rem}
+.hint{font-size:.8rem;color:var(--muted);margin:0}
+.label{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+.neg{color:var(--bad)}.pos{color:var(--good)}
+.brand{display:flex;align-items:center;gap:12px;padding-block:14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.logo{width:40px;height:40px;border-radius:10px;background:var(--accent);color:var(--brand);font-family:var(--font-head);font-weight:700;display:flex;align-items:center;justify-content:center;letter-spacing:.02em;flex:0 0 auto}
+.logo.big{width:64px;height:64px;font-size:1.5rem;border-radius:16px}
+.bn{flex:1;min-width:140px}.bn .name{font-family:var(--font-head);font-weight:700;font-size:1.15rem;line-height:1.2}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.stack{display:flex;flex-direction:column;gap:10px}
+.bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:500;min-height:42px}
+.btn:disabled{opacity:.55;cursor:default}
+.btn-primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.btn-good{background:var(--good);color:var(--surface);border-color:var(--good)}
+.btn-danger{color:var(--bad);border-color:var(--bad)}
+.btn-danger.armed{background:var(--bad);color:var(--surface)}
+.btn-small{padding:4px 10px;min-height:32px;font-size:.82rem}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+.field>span{font-size:.8rem;color:var(--muted);font-weight:500}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=tel],input[type=date],select,textarea{width:100%;min-height:42px;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg)}
+textarea{min-height:70px;resize:vertical}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tabs{display:flex;gap:6px;background:var(--surface2);padding:4px;border-radius:12px;align-self:flex-start}
+.tabs button{border:0;background:transparent;border-radius:9px;padding:8px 18px;font-weight:600;color:var(--muted);min-height:38px}
+.tabs button[aria-pressed=true]{background:var(--surface);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.tile{display:flex;flex-direction:column;gap:2px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface)}
+.tile b{font-family:var(--font-head);font-size:1.7rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.tile span{font-size:.78rem;color:var(--muted)}
+.tile.hot{border-color:var(--warn);background:var(--warn-bg)}
+.tile.alert{border-color:var(--bad);background:var(--bad-bg)}
+.tile.alert b{color:var(--bad)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.chip{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 12px;font-size:.85rem;font-weight:500;min-height:34px}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.filters{display:grid;grid-template-columns:2fr repeat(4,1fr);gap:8px}
+.tablewrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse}
+.tbl th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--surface2)}
+.tbl td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl tbody tr{cursor:pointer}.tbl tbody tr:hover{background:var(--surface2)}
+.tbl tbody tr:last-child td{border-bottom:0}
+.tbl .r{text-align:right}.tbl td.r{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+.tbl .no{font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.tbl .nm{font-weight:600;overflow-wrap:anywhere}
+.due{display:block;font-size:.76rem;font-weight:600;margin-top:2px}
+.due.bad{color:var(--bad)}.due.warn{color:var(--warn)}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.s-sent{background:var(--info-bg);color:var(--info)}.s-negotiation{background:var(--warn-bg);color:var(--warn)}
+.s-replied{background:var(--ind-bg);color:var(--ind)}.s-confirmed{background:var(--good-bg);color:var(--good)}
+.s-dispatched{background:var(--teal-bg);color:var(--teal)}.s-cancelled{background:var(--bad-bg);color:var(--bad)}
+.s-complete{background:var(--good);color:var(--surface)}.s-no{background:var(--gray-bg);color:var(--gray)}
+.empty{text-align:center;padding:28px 14px}.empty p{color:var(--muted);margin:6px 0 0}
+.banner{padding:9px 12px;border-radius:10px;font-size:.88rem;background:var(--warn-bg);color:var(--warn)}
+.banner.bad{background:var(--bad-bg);color:var(--bad)}
+.note{background:var(--ind-bg);color:var(--ind);padding:9px 12px;border-radius:10px;font-size:.88rem}
+.detail{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:start}
+.col{display:flex;flex-direction:column;gap:14px;min-width:0}
+.items .it{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid var(--line)}
+.items .it:first-child{border-top:0}.items .q{color:var(--muted);font-size:.82rem}
+.items .a{font-variant-numeric:tabular-nums;font-weight:600;white-space:nowrap}
+dl.tot{margin:8px 0 0;display:flex;flex-direction:column}
+dl.tot div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-top:1px solid var(--line)}
+dl.tot dt{color:var(--muted)}dl.tot dd{margin:0;text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+dl.tot .grand dt,dl.tot .grand dd{color:var(--fg);font-family:var(--font-head);font-weight:700;font-size:1.1rem}
+.datebox{display:flex;gap:8px;align-items:end;flex-wrap:wrap}.datebox .field{flex:1 1 170px}
+.big{font-family:var(--font-head);font-weight:700;font-size:1.25rem}
+.pick{display:flex;flex-direction:column;gap:8px}
+.pick label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--bg);cursor:pointer}
+.pick input{margin-top:3px}
+.tl .ev{display:flex;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.tl .ev:first-child{border-top:0}
+.tl i{flex:0 0 10px;height:10px;border-radius:50%;margin-top:6px;background:var(--accent)}
+.tl .t{font-weight:600}.tl .d{font-size:.8rem;color:var(--muted)}.tl .x{overflow-wrap:anywhere}
+.srow{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--line);flex-wrap:wrap}
+.srow:first-child{border-top:0}.srow .nm{font-weight:600;overflow-wrap:anywhere}
+.login{max-width:400px;margin:8vh auto 0;display:flex;flex-direction:column;gap:16px;width:100%}
+.brandbig{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+#toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--fg);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:.9rem;max-width:calc(100vw - 32px);opacity:0;pointer-events:none;transition:opacity .15s;z-index:20}
+#toast.show{opacity:1}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+@media (max-width:900px){.filters{grid-template-columns:1fr 1fr}.filters .wide{grid-column:1/-1}.detail{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){
+  .tablewrap{border:0;background:transparent;overflow:visible}
+  .tbl thead{display:none}.tbl,.tbl tbody{display:block}
+  .tbl tr{display:block;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-bottom:10px}
+  .tbl td{display:flex;justify-content:space-between;gap:12px;border:0;padding:6px 0;text-align:right}
+  .tbl td::before{content:attr(data-l);color:var(--muted);font-size:.78rem;text-align:left;flex:0 0 auto}
+  .tbl td.r{text-align:right}
+  .tbl tbody tr:hover{background:var(--surface)}
+}
+@media print{
+  body{background:#fff;color:#000;padding:0}.brand .btn,.tabs,.bar .btn,.btns,.datebox,.noprint,#toast{display:none!important}
+  .card{border:1px solid #bbb;break-inside:avoid}.detail{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="supabase.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+'use strict';
+var CFG=window.APP_CONFIG||{};
+var sb=null,chan=null,pollTimer=null,refreshTimer=null,toastTimer=null,known=null,refreshing=false;
+var STATUS={sent:'New order',negotiation:'Price request',replied:'Office replied',confirmed:'Confirmed',dispatched:'Dispatched',cancelled:'Cancelled'};
+var ORDER=['sent','negotiation','replied','confirmed','dispatched','cancelled'];
+var ERR={invalid_state:'This order has already changed. The list has been refreshed; please check and try again.',order_not_found:'Order not found.',not_allowed:'You are not allowed to do this.',
+  amount_required:'Enter the amount.',bad_decision:'Choose a reply.',delivery_date_required:'Choose a delivery date.',name_required:'Enter the name.',not_found:'Not found.',bad_action:'This action is not available.'};
+var state={status:'boot',profile:null,orders:[],people:[],products:[],events:[],view:'orders',openId:null,sort:'latest',
+  f:{status:'all',sm:'all',complete:'all',due:'all',q:''},form:{},confirm:null,editSm:null,busy:false,err:'',loadErr:''};
+var app=document.getElementById('app');
+
+/* ---------- helpers ---------- */
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function pad(n){return String(n).padStart(2,'0');}
+function money(n){n=Math.round((Number(n)||0)*100)/100;return '₹'+n.toLocaleString('en-IN',{maximumFractionDigits:2});}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function dayDiff(ds){return Math.round((new Date(ds+'T00:00:00')-new Date(todayStr()+'T00:00:00'))/86400000);}
+function fmtDate(ds){if(!ds)return '—';var d=new Date(ds+'T00:00:00'),o={weekday:'short',day:'numeric',month:'short'};if(d.getFullYear()!==new Date().getFullYear())o.year='numeric';return d.toLocaleDateString('en-IN',o);}
+function fmtTime(iso){try{return new Date(iso).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});}catch(e){return '';}}
+function fv(k,d){return state.form[k]!=null?state.form[k]:(d==null?'':d);}
+function errText(e){var m=(e&&e.message)||'Something went wrong.';return ERR[m]||m;}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.className='show';clearTimeout(toastTimer);toastTimer=setTimeout(function(){t.className='';},3200);}
+function effTotal(o){if(o.final_total!=null)return Number(o.final_total);if(o.status==='replied'&&o.agreed_total!=null)return Number(o.agreed_total);return Number(o.total);}
+function find(list,id){for(var i=0;i<list.length;i++){if(list[i].id===id)return list[i];}return null;}
+function pill(s){return '<span class="pill s-'+s+'">'+esc(STATUS[s]||s)+'</span>';}
+function completePill(o){return o.is_complete?'<span class="pill s-complete">Complete</span>':'<span class="pill s-no">Not complete</span>';}
+function canComplete(o){return o.status==='confirmed'||o.status==='dispatched';}
+function dueHtml(o){
+  if(!o.delivery_date||o.status==='cancelled'||o.is_complete)return '';
+  var d=dayDiff(o.delivery_date);
+  if(d<0)return '<span class="due bad">Overdue by '+(-d)+' day'+(d===-1?'':'s')+'</span>';
+  if(d===0)return '<span class="due warn">Due today</span>';
+  if(d===1)return '<span class="due warn">Tomorrow</span>';
+  return '';
+}
+function salesmen(){return state.people.filter(function(p){return p.role==='salesman';});}
+function filtered(){
+  var q=state.f.q.trim().toLowerCase(),f=state.f;
+  var list=state.orders.filter(function(o){
+    if(f.status==='confirmed_open'){if(!(canComplete(o)&&!o.is_complete))return false;}
+    else if(f.status!=='all'&&o.status!==f.status)return false;
+    if(f.sm!=='all'&&o.salesman_id!==f.sm)return false;
+    if(f.complete==='yes'&&!o.is_complete)return false;
+    if(f.complete==='no'&&(o.is_complete||o.status==='cancelled'))return false;
+    if(f.due!=='all'){
+      if(o.status==='cancelled'||o.is_complete||!o.delivery_date)return false;
+      var d=dayDiff(o.delivery_date);
+      if(f.due==='overdue'&&!(d<0))return false;
+      if(f.due==='today'&&d!==0)return false;
+      if(f.due==='week'&&!(d>=0&&d<=7))return false;
+    }
+    if(q){var hay=(o.order_no+' '+o.customer_name+' '+(o.customer_place||'')+' '+(o.salesman_name||'')).toLowerCase();if(hay.indexOf(q)<0)return false;}
+    return true;
+  });
+  if(state.sort==='delivery'){list.sort(function(a,b){var x=a.delivery_date||'9999',y=b.delivery_date||'9999';return x<y?-1:x>y?1:0;});}
+  return list;
+}
+function anyFilter(){var f=state.f;return f.status!=='all'||f.sm!=='all'||f.complete!=='all'||f.due!=='all'||f.q!=='';}
+
+/* ---------- data ---------- */
+async function fetchAllOrders(){
+  var all=[],from=0,page=1000;
+  for(;;){
+    var r=await sb.from('orders').select('*').order('updated_at',{ascending:false}).order('id',{ascending:true}).range(from,from+page-1);
+    if(r.error)throw r.error;
+    all=all.concat(r.data||[]);
+    if(!r.data||r.data.length<page)break;
+    from+=page;
+  }
+  return all;
+}
+async function loadAll(){
+  var res=await Promise.all([fetchAllOrders(),sb.from('profiles').select('*'),sb.from('products').select('*').order('name',{ascending:true})]);
+  if(res[1].error)throw res[1].error;if(res[2].error)throw res[2].error;
+  var fresh=res[0];
+  if(known){var added=fresh.filter(function(o){return !known[o.id];});if(added.length)toast('New order: '+added[0].customer_name+(added.length>1?' (+'+(added.length-1)+' more)':''));}
+  known={};fresh.forEach(function(o){known[o.id]=1;});
+  state.orders=fresh;state.people=res[1].data||[];state.products=res[2].data||[];state.loadErr='';
+}
+async function loadEvents(){
+  if(!state.openId){state.events=[];return;}
+  var r=await sb.from('order_events').select('*').eq('order_id',state.openId).order('created_at',{ascending:true});
+  state.events=r.error?[]:(r.data||[]);
+}
+async function refresh(){
+  if(refreshing||state.status!=='ready')return;refreshing=true;
+  try{await loadAll();await loadEvents();}catch(e){state.loadErr='Could not refresh. Check the internet connection.';}
+  refreshing=false;render();
+}
+function scheduleRefresh(){clearTimeout(refreshTimer);refreshTimer=setTimeout(refresh,400);}
+function subscribe(){
+  if(chan)return;
+  try{
+    chan=sb.channel('office-orders')
+      .on('postgres_changes',{event:'*',schema:'public',table:'orders'},scheduleRefresh)
+      .on('postgres_changes',{event:'*',schema:'public',table:'order_events'},scheduleRefresh)
+      .subscribe();
+  }catch(e){chan=null;}
+  clearInterval(pollTimer);pollTimer=setInterval(function(){if(document.visibilityState==='visible')refresh();},30000);
+}
+function unsubscribe(){try{if(chan)sb.removeChannel(chan);}catch(e){}chan=null;clearInterval(pollTimer);}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refresh();});
+window.addEventListener('online',function(){refresh();});
+
+/* ---------- sign in ---------- */
+async function enter(session){
+  var p=await sb.from('profiles').select('*').eq('id',session.user.id);
+  var pr=p.data&&p.data[0];
+  state.profile=pr||null;
+  if(!pr){state.status='noprofile';}
+  else if(pr.role!=='office'){state.status='wrongrole';}
+  else if(!pr.active){state.status='inactive';}
+  else{
+    state.status='loading';render();
+    try{await loadAll();}catch(e){state.loadErr='Could not load data. Check the internet connection.';}
+    state.status='ready';subscribe();
+  }
+  render();
+}
+async function boot(){
+  if(!window.supabase||!CFG.SUPABASE_URL){state.status='noconfig';render();return;}
+  sb=window.supabase.createClient(CFG.SUPABASE_URL,CFG.SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true}});
+  sb.auth.onAuthStateChange(function(ev){if(ev==='SIGNED_OUT'&&state.status!=='login'){resetSession();render();}});
+  var s=await sb.auth.getSession();
+  if(s.data&&s.data.session)await enter(s.data.session);else{state.status='login';render();}
+}
+function resetSession(){unsubscribe();known=null;state.status='login';state.profile=null;state.orders=[];state.people=[];state.products=[];state.events=[];state.openId=null;state.view='orders';state.form={};}
+
+/* ---------- views ---------- */
+function brandBar(sub,right){return '<header class="brand"><div class="logo" aria-hidden="true">JM</div><div class="bn"><div class="name">Jai Maa Enterprises</div><div class="sub">'+esc(sub)+'</div></div>'+(right||'')+'</header>';}
+function centerView(title,msg,btn){
+  return '<div class="login"><div class="brandbig"><div class="logo big" aria-hidden="true">JM</div><h1>Jai Maa Enterprises</h1></div><div class="card stack"><h2>'+esc(title)+'</h2><p class="sub" style="margin:0">'+esc(msg)+'</p>'+(btn||'')+'</div></div>';
+}
+function loginView(){
+  return '<div class="login"><div class="brandbig"><div class="logo big" aria-hidden="true">JM</div><h1>Jai Maa Enterprises</h1><div class="sub">Main Office</div></div>'+
+    '<form class="card stack" data-form="login"><div class="field"><span>Email</span><input type="email" id="lg-email" data-bind="lg-email" autocomplete="username" required value="'+esc(fv('lg-email'))+'"></div>'+
+    '<div class="field"><span>Password</span><input type="password" id="lg-pass" data-bind="lg-pass" autocomplete="current-password" required value="'+esc(fv('lg-pass'))+'"></div>'+
+    (state.err?'<div class="banner bad">'+esc(state.err)+'</div>':'')+
+    '<button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>'+(state.busy?'Signing in…':'Sign in')+'</button></form></div>';
+}
+function tileCounts(){
+  var c={sent:0,negotiation:0,confirmed:0,open:0,overdue:0};
+  state.orders.forEach(function(o){
+    if(o.status==='sent')c.sent++;if(o.status==='negotiation')c.negotiation++;if(o.status==='confirmed')c.confirmed++;
+    if(canComplete(o)&&!o.is_complete)c.open++;
+    if(o.delivery_date&&o.status!=='cancelled'&&!o.is_complete&&dayDiff(o.delivery_date)<0)c.overdue++;
+  });return c;
+}
+function ordersView(){
+  var c=tileCounts(),list=filtered(),h='';
+  h+='<div class="tiles">'+
+    '<button class="tile'+(c.sent?' hot':'')+'" data-action="tile" data-t="sent"><b>'+c.sent+'</b><span>New orders</span></button>'+
+    '<button class="tile'+(c.negotiation?' hot':'')+'" data-action="tile" data-t="negotiation"><b>'+c.negotiation+'</b><span>Price requests</span></button>'+
+    '<button class="tile" data-action="tile" data-t="confirmed"><b>'+c.confirmed+'</b><span>Confirmed, to dispatch</span></button>'+
+    '<button class="tile" data-action="tile" data-t="confirmed_open"><b>'+c.open+'</b><span>Confirmed, not complete</span></button>'+
+    '<button class="tile'+(c.overdue?' alert':'')+'" data-action="tile" data-t="overdue"><b>'+c.overdue+'</b><span>Overdue deliveries</span></button></div>';
+  var counts={};state.orders.forEach(function(o){counts[o.status]=(counts[o.status]||0)+1;});
+  h+='<div class="chips" role="group" aria-label="Filter by status"><button class="chip" data-action="chip" data-f="all" aria-pressed="'+(state.f.status==='all')+'">All '+state.orders.length+'</button>';
+  ORDER.forEach(function(s){h+='<button class="chip" data-action="chip" data-f="'+s+'" aria-pressed="'+(state.f.status===s)+'">'+esc(STATUS[s])+' '+(counts[s]||0)+'</button>';});
+  h+='</div>';
+  h+='<div class="filters"><input class="wide" type="text" id="q" data-bind="q" aria-label="Search orders" placeholder="Search order no, customer, place or salesman" autocomplete="off" value="'+esc(state.f.q)+'">'+
+    '<select id="f-sm" data-sel="sm" aria-label="Salesman"><option value="all">All salesmen</option>'+salesmen().map(function(s){return '<option value="'+esc(s.id)+'"'+(state.f.sm===s.id?' selected':'')+'>'+esc(s.name)+'</option>';}).join('')+'</select>'+
+    '<select id="f-cp" data-sel="complete" aria-label="Complete"><option value="all">Complete: all</option><option value="no"'+(state.f.complete==='no'?' selected':'')+'>Not complete</option><option value="yes"'+(state.f.complete==='yes'?' selected':'')+'>Complete</option></select>'+
+    '<select id="f-due" data-sel="due" aria-label="Delivery"><option value="all">Delivery: any date</option><option value="overdue"'+(state.f.due==='overdue'?' selected':'')+'>Overdue</option><option value="today"'+(state.f.due==='today'?' selected':'')+'>Due today</option><option value="week"'+(state.f.due==='week'?' selected':'')+'>Next 7 days</option></select>'+
+    '<select id="f-sort" data-sel="sort" aria-label="Sort"><option value="latest">Sort: latest activity</option><option value="delivery"'+(state.sort==='delivery'?' selected':'')+'>Sort: delivery date</option></select></div>';
+  if(anyFilter())h+='<div class="bar"><span class="sub">Showing '+list.length+' of '+state.orders.length+' orders'+(state.f.status==='confirmed_open'?' (confirmed, not complete)':'')+'</span><button class="btn btn-small" data-action="clear">Show all orders</button></div>';
+  if(!state.orders.length)return h+'<div class="card empty"><h2>No orders yet</h2><p>Orders sent by your salesmen will appear here automatically.</p></div>';
+  if(!list.length)return h+'<div class="card empty"><p>No orders match these filters.</p></div>';
+  h+='<div class="tablewrap"><table class="tbl"><thead><tr><th>Order</th><th>Salesman</th><th>Customer</th><th class="r">Total</th><th>Deliver by</th><th>Status</th><th>Complete</th></tr></thead><tbody>';
+  list.forEach(function(o){
+    h+='<tr data-action="open" data-id="'+esc(o.id)+'" tabindex="0"><td data-l="Order"><div><div class="no">'+esc(o.order_no)+'</div><div class="no">'+esc(fmtTime(o.created_at))+'</div></div></td>'+
+      '<td data-l="Salesman">'+esc(o.salesman_name)+'</td>'+
+      '<td data-l="Customer"><div><div class="nm">'+esc(o.customer_name)+'</div><div class="sub">'+esc(o.customer_place||'')+'</div></div></td>'+
+      '<td class="r" data-l="Total">'+money(effTotal(o))+'</td>'+
+      '<td data-l="Deliver by"><div>'+esc(fmtDate(o.delivery_date))+dueHtml(o)+'</div></td>'+
+      '<td data-l="Status">'+pill(o.status)+'</td>'+
+      '<td data-l="Complete"><div>'+(o.status==='cancelled'?'<span class="sub">—</span>':completePill(o))+
+        (canComplete(o)?'<div style="margin-top:6px"><button class="btn btn-small'+(o.is_complete?'':' btn-good')+'" data-action="toggle-complete" data-id="'+esc(o.id)+'"'+(state.busy?' disabled':'')+'>'+(o.is_complete?'Mark not complete':'Mark complete')+'</button></div>':'')+'</div></td></tr>';
+  });
+  h+='</tbody></table></div><div class="bar noprint"><button class="btn" data-action="export-csv">Export '+list.length+' orders to CSV</button><span class="hint">'+(chan?'Live: new orders appear automatically.':'Refreshes every 30 seconds.')+'</span></div>';
+  return h;
+}
+function timelineHtml(){
+  var h='<section class="card"><h2 style="margin-bottom:6px">Timeline</h2><div class="tl">';
+  if(!state.events.length)h+='<p class="hint">No events yet.</p>';
+  state.events.forEach(function(e){
+    var t={sent:'Order sent by salesman',negotiation_request:'Price negotiation requested',confirmed:'Order confirmed by salesman',dispatched:'Order dispatched',cancelled:'Order cancelled',completed:'Marked complete',reopened:'Marked not complete',delivery_changed:'Delivery date changed'}[e.type]||e.type;
+    if(e.type==='office_reply')t={approved:'Office approved the request',countered:'Office made a counter offer',rejected:'Office declined; original price stands'}[e.decision]||'Office replied';
+    var dflt=['Order sent to office','Customer confirmed the order','Order dispatched','Order marked complete','Order marked not complete','Order cancelled'];var x=e.type==='delivery_changed'?'New date: '+e.text:(dflt.indexOf(e.text)>=0?'':e.text);
+    h+='<div class="ev"><i></i><div style="min-width:0"><div class="t">'+esc(t)+(e.amount!=null?' · '+money(e.amount):'')+'</div><div class="d">'+esc(e.by_name||e.by_role)+' · '+esc(fmtTime(e.created_at))+'</div>'+(x?'<div class="x">'+esc(x)+'</div>':'')+'</div></div>';
+  });
+  return h+'</div></section>';
+}
+function detailView(o){
+  var h='<div class="bar noprint"><button class="btn" data-action="back">← All orders</button><button class="btn" data-action="print">Print order</button></div>';
+  h+='<div class="bar"><div><div class="sub">'+esc(o.order_no)+' · created '+esc(fmtTime(o.created_at))+'</div><h1>'+esc(o.customer_name)+'</h1><div class="sub">'+esc([o.customer_place,o.customer_phone].filter(Boolean).join(' · '))+'</div><div class="sub">Salesman: '+esc(o.salesman_name)+'</div></div><div class="btns">'+pill(o.status)+(o.status==='cancelled'?'':completePill(o))+'</div></div>';
+  h+='<div class="detail"><div class="col"><section class="card"><div class="items">';
+  (o.items||[]).forEach(function(it){h+='<div class="it"><div style="min-width:0"><div>'+esc(it.name)+'</div><div class="q">'+esc(it.qty)+' '+esc(it.unit||'')+' × '+money(it.rate)+'</div></div><div class="a">'+money((Number(it.qty)||0)*(Number(it.rate)||0))+'</div></div>';});
+  h+='</div><dl class="tot"><div><dt>Items total</dt><dd>'+money(o.subtotal)+'</dd></div>'+(Number(o.discount)?'<div><dt>Discount</dt><dd class="neg">− '+money(o.discount)+'</dd></div>':'')+
+    '<div><dt>Order total</dt><dd>'+money(o.total)+'</dd></div>'+
+    (o.status==='negotiation'&&o.nego_total!=null?'<div><dt>Salesman asks</dt><dd>'+money(o.nego_total)+'</dd></div>':'')+
+    (o.status==='replied'&&o.agreed_total!=null?'<div><dt>Office offer</dt><dd>'+money(o.agreed_total)+'</dd></div>':'')+
+    (o.final_total!=null?'<div class="grand"><dt>Final confirmed total</dt><dd>'+money(o.final_total)+'</dd></div>':'')+'</dl>'+
+    (o.notes?'<p class="hint" style="margin-top:10px">Notes: '+esc(o.notes)+'</p>':'')+'</section>'+timelineHtml()+'</div><div class="col">';
+  /* delivery */
+  h+='<section class="card stack"><div class="label">Delivery</div><div class="big">'+esc(fmtDate(o.delivery_date))+'</div>'+dueHtml(o);
+  if(o.status!=='cancelled')h+='<div class="datebox noprint"><div class="field"><span>Change delivery date</span><input type="date" id="dd" data-bind="dd" value="'+esc(fv('dd',o.delivery_date||''))+'"></div><button class="btn" data-action="save-date"'+(state.busy?' disabled':'')+'>Save date</button></div>';
+  h+='</section>';
+  /* complete */
+  h+='<section class="card stack"><div class="label">Completion</div>';
+  if(o.status==='cancelled')h+='<p class="sub" style="margin:0">This order is cancelled.</p>';
+  else if(canComplete(o))h+='<div>'+completePill(o)+(o.is_complete&&o.completed_at?' <span class="sub">since '+esc(fmtTime(o.completed_at))+'</span>':'')+'</div><button class="btn '+(o.is_complete?'':'btn-good')+'" data-action="toggle-complete" data-id="'+esc(o.id)+'"'+(state.busy?' disabled':'')+'>'+(o.is_complete?'Mark as not complete':'Mark as complete')+'</button>';
+  else h+='<div>'+completePill(o)+'</div><p class="hint">An order can be marked complete after the salesman confirms it.</p>';
+  h+='</section>';
+  /* negotiation reply */
+  if(o.status==='negotiation'){
+    var dec=fv('decision','approved');
+    h+='<form class="card stack" data-form="reply"><h2>Reply to price request</h2><p class="hint">Salesman asks '+money(o.nego_total)+' instead of '+money(o.total)+'.</p><div class="pick">'+
+      '<label><input type="radio" name="decision" data-bind="decision" value="approved"'+(dec==='approved'?' checked':'')+'><span><b>Approve</b> at '+money(o.nego_total)+'</span></label>'+
+      '<label><input type="radio" name="decision" data-bind="decision" value="countered"'+(dec==='countered'?' checked':'')+'><span><b>Counter offer</b> with another total</span></label>'+
+      '<label><input type="radio" name="decision" data-bind="decision" value="rejected"'+(dec==='rejected'?' checked':'')+'><span><b>Decline</b>; original total '+money(o.total)+' stays</span></label></div>'+
+      (dec==='countered'?'<div class="field"><span>Your offer: order total (₹)</span><input type="number" id="rep-amt" data-bind="rep-amt" inputmode="decimal" min="0" step="any" value="'+esc(fv('rep-amt'))+'"></div>':'')+
+      '<div class="field"><span>Note to salesman (optional)</span><textarea id="rep-text" data-bind="rep-text">'+esc(fv('rep-text'))+'</textarea></div><button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>Send reply</button></form>';
+  }
+  if(o.status==='sent')h+='<div class="note">New order. The salesman may still confirm it or ask for a better price.</div>';
+  if(o.status==='replied')h+='<div class="note">Reply sent. Waiting for the salesman to confirm or negotiate again.</div>';
+  /* actions */
+  var b='';
+  if(o.status==='confirmed')b+='<button class="btn btn-primary" data-action="dispatch"'+(state.busy?' disabled':'')+'>Mark as dispatched</button>';
+  if(['sent','negotiation','replied','confirmed'].indexOf(o.status)>=0&&!o.is_complete){var a=state.confirm==='cancel';b+='<button class="btn btn-danger'+(a?' armed':'')+'" data-action="cancel"'+(state.busy?' disabled':'')+'>'+(a?'Tap again to cancel order':'Cancel order')+'</button>';}
+  if(b)h+='<div class="btns noprint">'+b+'</div>';
+  return h+'</div></div>';
+}
+function salesmenView(){
+  var h='<section class="card"><h2 style="margin-bottom:4px">Salesmen</h2>';
+  var list=salesmen();
+  if(!list.length)h+='<p class="hint">No salesman logins yet. Create them in the Supabase dashboard (see the setup guide).</p>';
+  list.forEach(function(s){
+    var mine=state.orders.filter(function(o){return o.salesman_id===s.id;});
+    var conf=mine.filter(function(o){return o.status==='confirmed'||o.status==='dispatched';});
+    var val=conf.reduce(function(t,o){return t+effTotal(o);},0);
+    var open=mine.filter(function(o){return canComplete(o)&&!o.is_complete;}).length;
+    var wait=mine.filter(function(o){return o.status==='negotiation';}).length;
+    h+='<div class="srow"><div style="min-width:0"><div class="nm">'+esc(s.name)+(s.active?'':' <span class="pill s-cancelled">Login off</span>')+'</div><div class="sub">'+esc(s.email||'')+(s.phone?' · '+esc(s.phone):'')+'</div>'+
+      '<div class="sub">'+mine.length+' orders · '+conf.length+' confirmed ('+money(val)+') · '+open+' not complete'+(wait?' · <b>'+wait+' price request'+(wait===1?'':'s')+'</b>':'')+'</div></div>'+
+      '<div class="btns"><button class="btn btn-small" data-action="view-sm" data-id="'+esc(s.id)+'">View orders</button><button class="btn btn-small" data-action="edit-sm" data-id="'+esc(s.id)+'">'+(state.editSm===s.id?'Close':'Edit')+'</button></div></div>';
+    if(state.editSm===s.id)h+='<form class="stack" data-form="edit-sm" style="padding:0 0 12px"><div class="row2"><div class="field"><span>Name</span><input type="text" id="sm-name" data-bind="sm-name" value="'+esc(fv('sm-name',s.name))+'"></div><div class="field"><span>Phone</span><input type="tel" id="sm-phone" data-bind="sm-phone" value="'+esc(fv('sm-phone',s.phone||''))+'"></div></div>'+
+      '<label style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="sm-active" data-bind="sm-active"'+(fv('sm-active',s.active?'1':'')?' checked':'')+'> Login is active (a salesman with the login off cannot send orders)</label>'+
+      '<div class="btns"><button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>Save</button></div></form>';
+  });
+  h+='</section><section class="card"><h2>Adding a new salesman</h2><p class="hint" style="margin-top:6px">Create the login in the Supabase dashboard: Authentication → Users → Add user → Create new user (tick Auto Confirm User). The salesman then appears here, and you can set his name and phone.</p></section>';
+  return h;
+}
+function productsView(){
+  var h='<form class="card stack" data-form="add-product"><h2>Add or update a product</h2><div class="field"><span>Product name</span><input type="text" id="p-name" data-bind="p-name" autocomplete="off" value="'+esc(fv('p-name'))+'"></div>'+
+    '<div class="row2"><div class="field"><span>Unit</span><input type="text" id="p-unit" data-bind="p-unit" autocomplete="off" value="'+esc(fv('p-unit'))+'" placeholder="pcs, kg, box"></div><div class="field"><span>Rate (₹)</span><input type="number" id="p-rate" data-bind="p-rate" inputmode="decimal" min="0" step="any" value="'+esc(fv('p-rate'))+'"></div></div>'+
+    '<button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>Save product</button><p class="hint">Salesmen see these as suggestions with the rate filled in. Saving an existing name updates its rate.</p></form>';
+  h+='<div class="card">'+(state.products.length?'':'<p class="hint">No products yet. Salesmen can still type any product name.</p>');
+  state.products.forEach(function(p){var a=state.confirm==='p:'+p.id;h+='<div class="srow"><div><div class="nm">'+esc(p.name)+'</div><div class="sub">'+money(p.rate)+' per '+esc(p.unit||'unit')+'</div></div><div class="btns"><button class="btn btn-small" data-action="edit-product" data-id="'+esc(p.id)+'">Edit</button><button class="btn btn-small btn-danger'+(a?' armed':'')+'" data-action="del-product" data-id="'+esc(p.id)+'">'+(a?'Tap again':'Delete')+'</button></div></div>';});
+  return h+'</div>';
+}
+function mainView(){
+  var right='<div class="btns"><span class="sub" style="align-self:center">'+esc(state.profile.name||'Office')+'</span><button class="btn btn-small" data-action="signout">Sign out</button></div>';
+  var h=brandBar('Main Office · Orders',right);
+  if(state.loadErr)h+='<div class="banner">'+esc(state.loadErr)+'</div>';
+  var o=state.openId?find(state.orders,state.openId):null;
+  if(o)return h+detailView(o);
+  state.openId=null;
+  h+='<div class="tabs" role="group" aria-label="Section">'+[['orders','Orders'],['salesmen','Salesmen'],['products','Products']].map(function(t){return '<button data-action="tab" data-t="'+t[0]+'" aria-pressed="'+(state.view===t[0])+'">'+t[1]+'</button>';}).join('')+'</div>';
+  return h+(state.view==='orders'?ordersView():state.view==='salesmen'?salesmenView():productsView());
+}
+function view(){
+  var s=state.status;
+  if(s==='boot')return '<div class="login"><div class="brandbig"><div class="logo big">JM</div><h1>Jai Maa Enterprises</h1></div></div>';
+  if(s==='noconfig')return centerView('Setup incomplete','Connection settings are missing. Check config.js and supabase.js.');
+  if(s==='login')return loginView();
+  if(s==='loading')return brandBar('Main Office')+'<div class="card empty"><p>Loading orders…</p></div>';
+  var out='<button class="btn" data-action="signout">Sign out</button>';
+  if(s==='wrongrole')return centerView('This login is for a salesman','Please use the Salesman app on the phone. The Office app is only for the main office login.',out);
+  if(s==='inactive')return centerView('Login switched off','This login has been switched off. Please contact the owner.',out);
+  if(s==='noprofile')return centerView('Login not set up','This login has no profile yet. Run the database setup file, then sign in again.',out);
+  return mainView();
+}
+
+/* ---------- render ---------- */
+function render(){
+  var ae=document.activeElement,id=null,sel=null;
+  if(ae&&ae.id&&app.contains(ae)){id=ae.id;try{sel=[ae.selectionStart,ae.selectionEnd];}catch(e){}}
+  var y=window.scrollY;
+  app.innerHTML=view();
+  if(id){var el=document.getElementById(id);if(el){el.focus();try{if(sel&&sel[0]!=null)el.setSelectionRange(sel[0],sel[1]);}catch(e){}}}
+  window.scrollTo(0,y);
+}
+function go(patch){Object.keys(patch).forEach(function(k){state[k]=patch[k];});state.form={};state.confirm=null;render();window.scrollTo(0,0);}
+
+/* ---------- actions ---------- */
+async function act(o,action,extra,okMsg){
+  if(state.busy)return false;state.busy=true;render();
+  var args={p_order_id:o.id,p_action:action};Object.keys(extra||{}).forEach(function(k){args[k]=extra[k];});
+  var r=await sb.rpc('order_action',args);
+  state.busy=false;
+  if(r.error){toast(errText(r.error));await refresh();return false;}
+  var row=r.data;if(row&&row.id){for(var i=0;i<state.orders.length;i++){if(state.orders[i].id===row.id)state.orders[i]=row;}}
+  await loadEvents();state.confirm=null;state.form={};toast(okMsg||'Done');render();return true;
+}
+function csvDownload(list){
+  var rows=[['Order No','Created','Salesman','Customer','Phone','Place','Status','Complete','Deliver by','Items','Items total','Discount','Original total','Final / agreed total']];
+  list.forEach(function(o){rows.push([o.order_no,(o.created_at||'').slice(0,10),o.salesman_name,o.customer_name,o.customer_phone||'',o.customer_place||'',STATUS[o.status]||o.status,o.is_complete?'Yes':'No',o.delivery_date||'',
+    (o.items||[]).map(function(i){return i.name+' x'+i.qty+(i.unit?' '+i.unit:'')+' @'+i.rate;}).join('; '),o.subtotal,o.discount,o.total,effTotal(o)]);});
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c==null?'':c).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');
+  try{var a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'}));a.download='jai-maa-orders-'+todayStr()+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);toast('CSV downloaded');}
+  catch(e){toast('Download is not available here.');}
+}
+function cur(){return find(state.orders,state.openId);}
+
+app.addEventListener('click',function(ev){
+  var b=ev.target.closest('[data-action]');if(!b||!app.contains(b))return;
+  var a=b.getAttribute('data-action'),o=cur(),id=b.getAttribute('data-id');
+  if(a!=='cancel'&&a!=='del-product')state.confirm=null;
+  if(a==='signout'){sb.auth.signOut().then(function(){resetSession();render();});return;}
+  if(a==='tab'){go({view:b.getAttribute('data-t'),editSm:null});return;}
+  if(a==='open'){state.openId=id;state.form={};state.events=[];render();window.scrollTo(0,0);loadEvents().then(render);return;}
+  if(a==='back'){go({openId:null,events:[]});return;}
+  if(a==='tile'){var t=b.getAttribute('data-t');state.f={status:'all',sm:'all',complete:'all',due:'all',q:''};if(t==='overdue')state.f.due='overdue';else state.f.status=t;render();return;}
+  if(a==='chip'){state.f.status=b.getAttribute('data-f');render();return;}
+  if(a==='clear'){state.f={status:'all',sm:'all',complete:'all',due:'all',q:''};render();return;}
+  if(a==='print'){window.print();return;}
+  if(a==='export-csv'){csvDownload(filtered());return;}
+  if(a==='view-sm'){state.f={status:'all',sm:id,complete:'all',due:'all',q:''};go({view:'orders'});return;}
+  if(a==='edit-sm'){state.editSm=state.editSm===id?null:id;state.form={};render();return;}
+  if(a==='edit-product'){var p=find(state.products,id);if(p){state.form={'p-name':p.name,'p-unit':p.unit||'','p-rate':String(p.rate)};render();window.scrollTo(0,0);}return;}
+  if(a==='del-product'){
+    if(state.confirm!=='p:'+id){state.confirm='p:'+id;render();return;}
+    state.confirm=null;sb.from('products').delete().eq('id',id).then(function(r){if(r.error){toast(errText(r.error));return;}state.products=state.products.filter(function(x){return x.id!==id;});toast('Product deleted');render();});return;
+  }
+  if(a==='toggle-complete'){var t2=find(state.orders,id);if(t2)act(t2,t2.is_complete?'reopen':'complete',{},t2.is_complete?'Marked not complete':'Marked complete');return;}
+  if(!o)return;
+  if(a==='dispatch'){act(o,'dispatch',{},'Marked as dispatched');}
+  else if(a==='cancel'){if(state.confirm!=='cancel'){state.confirm='cancel';render();return;}act(o,'cancel',{},'Order cancelled');}
+  else if(a==='save-date'){var d=fv('dd',o.delivery_date||'');if(!d){toast('Choose a delivery date.');return;}act(o,'set_delivery',{p_date:d},'Delivery date saved');}
+});
+app.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&ev.target.matches&&ev.target.matches('tr[data-action=open]'))ev.target.click();});
+app.addEventListener('input',function(ev){
+  var t=ev.target,k=t.getAttribute('data-bind');if(!k)return;
+  if(t.type==='checkbox')state.form[k]=t.checked?'1':'';else state.form[k]=t.value;
+  if(k==='q'){state.f.q=t.value;render();}
+});
+app.addEventListener('change',function(ev){
+  var t=ev.target,sel=t.getAttribute('data-sel');
+  if(sel){if(sel==='sort')state.sort=t.value;else state.f[sel]=t.value;render();return;}
+  if(t.getAttribute('data-bind')==='decision'){state.form.decision=t.value;render();}
+});
+app.addEventListener('submit',async function(ev){
+  ev.preventDefault();var f=ev.target.getAttribute('data-form'),o=cur();
+  if(f==='login'){
+    if(state.busy)return;
+    var em=fv('lg-email').trim(),pw=fv('lg-pass');state.busy=true;state.err='';render();
+    var r=await sb.auth.signInWithPassword({email:em,password:pw});
+    state.busy=false;
+    if(r.error||!r.data||!r.data.session){state.err=/invalid/i.test((r.error&&r.error.message)||'')?'Email or password is incorrect.':'Could not sign in. Check the internet connection and try again.';render();return;}
+    state.form={};await enter(r.data.session);
+  }else if(f==='reply'&&o){
+    var dec=fv('decision','approved'),extra={p_decision:dec,p_text:fv('rep-text').trim()};
+    if(dec==='countered'){var amt=parseFloat(fv('rep-amt'));if(!isFinite(amt)||amt<0){toast('Enter your offer total.');return;}extra.p_amount=amt;}
+    act(o,'reply',extra,'Reply sent to salesman');
+  }else if(f==='edit-sm'){
+    var s=find(state.people,state.editSm);if(!s||state.busy)return;
+    var nm=fv('sm-name',s.name).trim();if(!nm){toast('Enter the name.');return;}
+    state.busy=true;render();
+    var r2=await sb.rpc('update_salesman',{p_id:s.id,p_name:nm,p_phone:fv('sm-phone',s.phone||'').trim(),p_active:!!fv('sm-active',s.active?'1':'')});
+    state.busy=false;if(r2.error){toast(errText(r2.error));render();return;}
+    await loadAll();state.editSm=null;state.form={};toast('Salesman updated');render();
+  }else if(f==='add-product'){
+    var pn=fv('p-name').trim(),pr=parseFloat(fv('p-rate'));
+    if(!pn||!isFinite(pr)||pr<0){toast('Enter the product name and rate.');return;}
+    state.busy=true;render();
+    var r3=await sb.from('products').upsert({name:pn,unit:fv('p-unit').trim(),rate:pr},{onConflict:'name'});
+    state.busy=false;if(r3.error){toast(errText(r3.error));render();return;}
+    await loadAll();state.form={};toast(pn+' saved');render();
+  }
+});
+
+boot();
+})();
+</script>
+</body>
+</html>
