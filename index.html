@@ -147,8 +147,8 @@ var STATUS={sent:'New order',negotiation:'Price request',replied:'Office replied
 var ORDER=['sent','negotiation','replied','confirmed','dispatched','cancelled'];
 var ERR={invalid_state:'This order has already changed. The list has been refreshed; please check and try again.',order_not_found:'Order not found.',not_allowed:'You are not allowed to do this.',
   amount_required:'Enter the amount.',bad_decision:'Choose a reply.',delivery_date_required:'Choose a delivery date.',name_required:'Enter the name.',not_found:'Not found.',bad_action:'This action is not available.'};
-var state={status:'boot',profile:null,orders:[],people:[],products:[],events:[],view:'orders',openId:null,sort:'latest',
-  f:{status:'all',sm:'all',complete:'all',due:'all',q:''},form:{},confirm:null,editSm:null,busy:false,err:'',loadErr:''};
+var state={status:'boot',profile:null,orders:[],people:[],products:[],customers:[],events:[],view:'orders',openId:null,sort:'latest',
+  f:{status:'all',sm:'all',complete:'all',due:'all',q:''},form:{},confirm:null,editSm:null,editCustomer:null,busy:false,err:'',loadErr:''};
 var app=document.getElementById('app');
 
 /* ---------- helpers ---------- */
@@ -212,12 +212,12 @@ async function fetchAllOrders(){
   return all;
 }
 async function loadAll(){
-  var res=await Promise.all([fetchAllOrders(),sb.from('profiles').select('*'),sb.from('products').select('*').order('name',{ascending:true})]);
-  if(res[1].error)throw res[1].error;if(res[2].error)throw res[2].error;
+  var res=await Promise.all([fetchAllOrders(),sb.from('profiles').select('*'),sb.from('products').select('*').order('name',{ascending:true}),sb.from('customers').select('*').order('name',{ascending:true})]);
+  if(res[1].error)throw res[1].error;if(res[2].error)throw res[2].error;if(res[3].error)throw res[3].error;
   var fresh=res[0];
   if(known){var added=fresh.filter(function(o){return !known[o.id];});if(added.length)toast('New order: '+added[0].customer_name+(added.length>1?' (+'+(added.length-1)+' more)':''));}
   known={};fresh.forEach(function(o){known[o.id]=1;});
-  state.orders=fresh;state.people=res[1].data||[];state.products=res[2].data||[];state.loadErr='';
+  state.orders=fresh;state.people=res[1].data||[];state.products=res[2].data||[];state.customers=res[3].data||[];state.loadErr='';
 }
 async function loadEvents(){
   if(!state.openId){state.events=[];return;}
@@ -266,7 +266,7 @@ async function boot(){
   var s=await sb.auth.getSession();
   if(s.data&&s.data.session)await enter(s.data.session);else{state.status='login';render();}
 }
-function resetSession(){unsubscribe();known=null;state.status='login';state.profile=null;state.orders=[];state.people=[];state.products=[];state.events=[];state.openId=null;state.view='orders';state.form={};}
+function resetSession(){unsubscribe();known=null;state.status='login';state.profile=null;state.orders=[];state.people=[];state.products=[];state.customers=[];state.events=[];state.openId=null;state.view='orders';state.form={};state.editCustomer=null;}
 
 /* ---------- views ---------- */
 function brandBar(sub,right){return '<header class="brand"><div class="logo" aria-hidden="true">JM</div><div class="bn"><div class="name">Jai Maa Enterprises</div><div class="sub">'+esc(sub)+'</div></div>'+(right||'')+'</header>';}
@@ -333,8 +333,13 @@ function timelineHtml(){
   });
   return h+'</div></section>';
 }
+function printChallan(o){
+  var w=window.open('','_blank','width=850,height=900');if(!w){toast('Allow pop-ups to print the delivery challan.');return;}
+  var rows=(o.items||[]).map(function(it,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(it.name)+'</td><td>'+esc(it.qty)+' '+esc(it.unit||'')+'</td><td>₹'+Number(it.rate||0).toLocaleString('en-IN')+'</td><td>₹'+(Number(it.qty||0)*Number(it.rate||0)).toLocaleString('en-IN')+'</td></tr>';}).join('');
+  w.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Delivery Challan '+esc(o.order_no)+'</title><style>body{font:14px Arial,sans-serif;color:#111;margin:32px}h1,h2,p{margin:0 0 8px}.head{display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:18px}.meta{margin:18px 0;display:grid;grid-template-columns:1fr 1fr;gap:10px}.box{border:1px solid #888;padding:12px}table{width:100%;border-collapse:collapse;margin-top:18px}th,td{border:1px solid #888;padding:9px;text-align:left}th{background:#eee}.total{text-align:right;font-size:18px;font-weight:bold;margin-top:16px}.sign{display:flex;justify-content:space-between;margin-top:90px}.sign div{width:40%;border-top:1px solid #111;text-align:center;padding-top:8px}@media print{button{display:none}}</style></head><body><div class="head"><div><h1>Jai Maa Enterprises</h1><p>Delivery Challan</p></div><div><h2>'+esc(o.order_no)+'</h2><p>Order date: '+esc(fmtTime(o.created_at))+'</p><p>Delivery date: '+esc(fmtDate(o.delivery_date))+'</p></div></div><div class="meta"><div class="box"><b>Customer / Shop</b><p>'+esc(o.customer_name)+'</p><p>'+esc(o.customer_place||'')+'</p><p>'+esc(o.customer_phone||'')+'</p></div><div class="box"><b>Salesman</b><p>'+esc(o.salesman_name||'')+'</p><p>Challan generated: '+esc(new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'}))+'</p></div></div><table><thead><tr><th>S.No.</th><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th></tr></thead><tbody>'+rows+'</tbody></table><div class="total">Total: ₹'+Number(effTotal(o)||0).toLocaleString('en-IN')+'</div><div class="sign"><div>Customer signature</div><div>Authorized signature</div></div></body></html>');w.document.close();w.focus();w.print();
+}
 function detailView(o){
-  var h='<div class="bar noprint"><button class="btn" data-action="back">← All orders</button><button class="btn" data-action="print">Print order</button></div>';
+  var h='<div class="bar noprint"><button class="btn" data-action="back">← All orders</button><button class="btn" data-action="print">Print order</button><button class="btn btn-primary" data-action="print-challan">Print delivery challan</button></div>';
   h+='<div class="bar"><div><div class="sub">'+esc(o.order_no)+' · created '+esc(fmtTime(o.created_at))+'</div><h1>'+esc(o.customer_name)+'</h1><div class="sub">'+esc([o.customer_place,o.customer_phone].filter(Boolean).join(' · '))+'</div><div class="sub">Salesman: '+esc(o.salesman_name)+'</div></div><div class="btns">'+pill(o.status)+(o.status==='cancelled'?'':completePill(o))+'</div></div>';
   h+='<div class="detail"><div class="col"><section class="card"><div class="items">';
   (o.items||[]).forEach(function(it){h+='<div class="it"><div style="min-width:0"><div>'+esc(it.name)+'</div><div class="q">'+esc(it.qty)+' '+esc(it.unit||'')+' × '+money(it.rate)+'</div></div><div class="a">'+money((Number(it.qty)||0)*(Number(it.rate)||0))+'</div></div>';});
@@ -394,11 +399,23 @@ function salesmenView(){
   return h;
 }
 function productsView(){
-  var h='<form class="card stack" data-form="add-product"><h2>Add or update a product</h2><div class="field"><span>Product name</span><input type="text" id="p-name" data-bind="p-name" autocomplete="off" value="'+esc(fv('p-name'))+'"></div>'+
-    '<div class="row2"><div class="field"><span>Unit</span><input type="text" id="p-unit" data-bind="p-unit" autocomplete="off" value="'+esc(fv('p-unit'))+'" placeholder="pcs, kg, box"></div><div class="field"><span>Rate (₹)</span><input type="number" id="p-rate" data-bind="p-rate" inputmode="decimal" min="0" step="any" value="'+esc(fv('p-rate'))+'"></div></div>'+
-    '<button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>Save product</button><p class="hint">Salesmen see these as suggestions with the rate filled in. Saving an existing name updates its rate.</p></form>';
-  h+='<div class="card">'+(state.products.length?'':'<p class="hint">No products yet. Salesmen can still type any product name.</p>');
-  state.products.forEach(function(p){var a=state.confirm==='p:'+p.id;h+='<div class="srow"><div><div class="nm">'+esc(p.name)+'</div><div class="sub">'+money(p.rate)+' per '+esc(p.unit||'unit')+'</div></div><div class="btns"><button class="btn btn-small" data-action="edit-product" data-id="'+esc(p.id)+'">Edit</button><button class="btn btn-small btn-danger'+(a?' armed':'')+'" data-action="del-product" data-id="'+esc(p.id)+'">'+(a?'Tap again':'Delete')+'</button></div></div>';});
+  var h='<form class="card stack" data-form="add-product"><h2>Add or update a product</h2><div class="field"><span>Product name</span><input type="text" id="p-name" data-bind="p-name" autocomplete="off" required value="'+esc(fv('p-name'))+'"></div>'+
+    '<div class="row2"><div class="field"><span>Unit</span><input type="text" id="p-unit" data-bind="p-unit" autocomplete="off" value="'+esc(fv('p-unit'))+'" placeholder="kg, bag, box"></div><div class="field"><span>Rate (₹ per unit)</span><input type="number" id="p-rate" data-bind="p-rate" inputmode="decimal" min="0" step="any" required value="'+esc(fv('p-rate'))+'"></div></div>'+
+    '<div class="field"><span>Available stock</span><input type="number" id="p-stock" data-bind="p-stock" inputmode="decimal" min="0" step="any" required value="'+esc(fv('p-stock','0'))+'"></div>'+
+    '<button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>Save product and stock</button><p class="hint">Salesmen see the rate and available stock. Stock is deducted when an order is confirmed.</p></form>';
+  h+='<div class="card">'+(state.products.length?'':'<p class="hint">No products yet. Add products and opening stock here.</p>');
+  state.products.forEach(function(p){var a=state.confirm==='p:'+p.id;h+='<div class="srow"><div><div class="nm">'+esc(p.name)+'</div><div class="sub">'+money(p.rate)+' per '+esc(p.unit||'unit')+' · Stock: '+esc(p.stock==null?0:p.stock)+' '+esc(p.unit||'')+'</div></div><div class="btns"><button class="btn btn-small" data-action="edit-product" data-id="'+esc(p.id)+'">Edit</button><button class="btn btn-small btn-danger'+(a?' armed':'')+'" data-action="del-product" data-id="'+esc(p.id)+'">'+(a?'Tap again':'Delete')+'</button></div></div>';});
+  return h+'</div>';
+}
+function customersView(){
+  var editing=!!state.editCustomer;
+  var h='<form class="card stack" data-form="customer"><h2>'+(editing?'Edit customer / shop':'Add customer / shop')+'</h2>'+
+    '<div class="field"><span>Customer / shop name</span><input type="text" id="c-name" data-bind="c-name" required value="'+esc(fv('c-name'))+'"></div>'+
+    '<div class="field"><span>Address / area</span><textarea id="c-address" data-bind="c-address" required>'+esc(fv('c-address'))+'</textarea></div>'+
+    '<div class="field"><span>Phone</span><input type="tel" id="c-phone" data-bind="c-phone" required value="'+esc(fv('c-phone'))+'"></div>'+
+    '<div class="btns"><button class="btn btn-primary" type="submit"'+(state.busy?' disabled':'')+'>'+(editing?'Update customer':'Save customer')+'</button>'+(editing?'<button class="btn" type="button" data-action="cancel-customer-edit">Cancel</button>':'')+'</div></form>';
+  h+='<div class="card">'+(state.customers.length?'':'<p class="hint">No customers yet. Add your customer list here; salesman accounts will see active customers.</p>');
+  state.customers.forEach(function(c){var armed=state.confirm==='c:'+c.id;h+='<div class="srow"><div><div class="nm">'+esc(c.name)+(c.active===false?' · Inactive':'')+'</div><div class="sub">'+esc(c.address||'')+' · '+esc(c.phone||'')+'</div></div><div class="btns"><button class="btn btn-small" data-action="edit-customer" data-id="'+esc(c.id)+'">Edit</button><button class="btn btn-small btn-danger'+(armed?' armed':'')+'" data-action="del-customer" data-id="'+esc(c.id)+'">'+(armed?'Tap again':'Delete')+'</button></div></div>';});
   return h+'</div>';
 }
 function mainView(){
@@ -408,8 +425,8 @@ function mainView(){
   var o=state.openId?find(state.orders,state.openId):null;
   if(o)return h+detailView(o);
   state.openId=null;
-  h+='<div class="tabs" role="group" aria-label="Section">'+[['orders','Orders'],['salesmen','Salesmen'],['products','Products']].map(function(t){return '<button data-action="tab" data-t="'+t[0]+'" aria-pressed="'+(state.view===t[0])+'">'+t[1]+'</button>';}).join('')+'</div>';
-  return h+(state.view==='orders'?ordersView():state.view==='salesmen'?salesmenView():productsView());
+  h+='<div class="tabs" role="group" aria-label="Section">'+[['orders','Orders'],['salesmen','Salesmen'],['customers','Customers'],['products','Products']].map(function(t){return '<button data-action="tab" data-t="'+t[0]+'" aria-pressed="'+(state.view===t[0])+'">'+t[1]+'</button>';}).join('')+'</div>';
+  return h+(state.view==='orders'?ordersView():state.view==='salesmen'?salesmenView():state.view==='customers'?customersView():productsView());
 }
 function view(){
   var s=state.status;
@@ -458,7 +475,7 @@ function cur(){return find(state.orders,state.openId);}
 app.addEventListener('click',function(ev){
   var b=ev.target.closest('[data-action]');if(!b||!app.contains(b))return;
   var a=b.getAttribute('data-action'),o=cur(),id=b.getAttribute('data-id');
-  if(a!=='cancel'&&a!=='del-product')state.confirm=null;
+  if(a!=='cancel'&&a!=='del-product'&&a!=='del-customer')state.confirm=null;
   if(a==='signout'){sb.auth.signOut().then(function(){resetSession();render();});return;}
   if(a==='tab'){go({view:b.getAttribute('data-t'),editSm:null});return;}
   if(a==='open'){state.openId=id;state.form={};state.events=[];render();window.scrollTo(0,0);loadEvents().then(render);return;}
@@ -467,10 +484,14 @@ app.addEventListener('click',function(ev){
   if(a==='chip'){state.f.status=b.getAttribute('data-f');render();return;}
   if(a==='clear'){state.f={status:'all',sm:'all',complete:'all',due:'all',q:''};render();return;}
   if(a==='print'){window.print();return;}
+  if(a==='print-challan'){if(o)printChallan(o);return;}
+  if(a==='cancel-customer-edit'){state.editCustomer=null;state.form={};render();return;}
+  if(a==='edit-customer'){var cu=find(state.customers,id);if(cu){state.editCustomer=id;state.form={'c-name':cu.name,'c-address':cu.address||'','c-phone':cu.phone||''};render();window.scrollTo(0,0);}return;}
+  if(a==='del-customer'){if(state.confirm!=='c:'+id){state.confirm='c:'+id;render();return;}state.confirm=null;sb.from('customers').delete().eq('id',id).then(async function(r){if(r.error){toast(errText(r.error));return;}await loadAll();toast('Customer deleted');render();});return;}
   if(a==='export-csv'){csvDownload(filtered());return;}
   if(a==='view-sm'){state.f={status:'all',sm:id,complete:'all',due:'all',q:''};go({view:'orders'});return;}
   if(a==='edit-sm'){state.editSm=state.editSm===id?null:id;state.form={};render();return;}
-  if(a==='edit-product'){var p=find(state.products,id);if(p){state.form={'p-name':p.name,'p-unit':p.unit||'','p-rate':String(p.rate)};render();window.scrollTo(0,0);}return;}
+  if(a==='edit-product'){var p=find(state.products,id);if(p){state.form={'p-name':p.name,'p-unit':p.unit||'','p-rate':String(p.rate),'p-stock':String(p.stock==null?0:p.stock)};render();window.scrollTo(0,0);}return;}
   if(a==='del-product'){
     if(state.confirm!=='p:'+id){state.confirm='p:'+id;render();return;}
     state.confirm=null;sb.from('products').delete().eq('id',id).then(function(r){if(r.error){toast(errText(r.error));return;}state.products=state.products.filter(function(x){return x.id!==id;});toast('Product deleted');render();});return;
@@ -513,12 +534,19 @@ app.addEventListener('submit',async function(ev){
     state.busy=false;if(r2.error){toast(errText(r2.error));render();return;}
     await loadAll();state.editSm=null;state.form={};toast('Salesman updated');render();
   }else if(f==='add-product'){
-    var pn=fv('p-name').trim(),pr=parseFloat(fv('p-rate'));
-    if(!pn||!isFinite(pr)||pr<0){toast('Enter the product name and rate.');return;}
+    var pn=fv('p-name').trim(),pr=parseFloat(fv('p-rate')),stock=parseFloat(fv('p-stock'));
+    if(!pn||!isFinite(pr)||pr<0||!isFinite(stock)||stock<0){toast('Enter product name, rate and non-negative stock.');return;}
     state.busy=true;render();
-    var r3=await sb.from('products').upsert({name:pn,unit:fv('p-unit').trim(),rate:pr},{onConflict:'name'});
+    var r3=await sb.from('products').upsert({name:pn,unit:fv('p-unit').trim(),rate:pr,stock:stock},{onConflict:'name'});
     state.busy=false;if(r3.error){toast(errText(r3.error));render();return;}
     await loadAll();state.form={};toast(pn+' saved');render();
+  }else if(f==='customer'){
+    var cn=fv('c-name').trim(),ca=fv('c-address').trim(),cp=fv('c-phone').trim();
+    if(!cn||!ca||!cp){toast('Enter customer name, address and phone.');return;}
+    state.busy=true;render();var payload={name:cn,address:ca,phone:cp,active:true};
+    var q=state.editCustomer?sb.from('customers').update(payload).eq('id',state.editCustomer):sb.from('customers').insert(payload);
+    var cr=await q;state.busy=false;if(cr.error){toast(errText(cr.error));render();return;}
+    state.editCustomer=null;state.form={};await loadAll();toast(cn+' saved');render();
   }
 });
 
