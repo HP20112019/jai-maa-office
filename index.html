@@ -475,7 +475,7 @@ function cur(){return find(state.orders,state.openId);}
 app.addEventListener('click',function(ev){
   var b=ev.target.closest('[data-action]');if(!b||!app.contains(b))return;
   var a=b.getAttribute('data-action'),o=cur(),id=b.getAttribute('data-id');
-  if(a!=='cancel'&&a!=='del-product')state.confirm=null;
+  if(a!=='cancel'&&a!=='del-product'&&a!=='del-customer')state.confirm=null;
   if(a==='signout'){sb.auth.signOut().then(function(){resetSession();render();});return;}
   if(a==='tab'){go({view:b.getAttribute('data-t'),editSm:null});return;}
   if(a==='open'){state.openId=id;state.form={};state.events=[];render();window.scrollTo(0,0);loadEvents().then(render);return;}
